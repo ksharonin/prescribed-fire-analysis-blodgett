@@ -1,5 +1,6 @@
 var drawingTools = Map.drawingTools();
 
+
 // create polygon of prescribed fire
 var map1 = ui.Map();
 map1.drawingTools().setLinked(true);
@@ -76,7 +77,7 @@ var visParams = {
   gamma: 0.8,
   dimensions: 600,
   framesPerSecond: 10,
-  region: wantedZoom,
+  region: geometry,
   crs: 'EPSG:3857'
 };
 
@@ -210,19 +211,18 @@ print(ui.Thumbnail(cmiFdcVisCol, cmiFdcVisParams));
 // impact of the disturbance. Imagery used in this process comes from either Sentinel-2 or 
 // Landsat 8.
 //===========================================================================================
-//
 //*******************************************************************************************
 //                                     SET TIME FRAME
 
 // Set start and end dates of a period BEFORE the fire. Make sure it is long enough for 
 // Sentinel-2 to acquire an image (repitition rate = 5 days). Adjust these parameters, if
 // your ImageCollections (see Console) do not contain any elements.
-var prefire_start = '2021-10-01';   
-var prefire_end = '2021-10-30';
+var prefire_start = '2022-03-01';   
+var prefire_end = '2022-03-11';
 
 // Now set the same parameters for AFTER the fire.
 var postfire_start = '2022-03-13';
-var postfire_end = '2022-05-28';
+var postfire_end = '2022-03-28';
 
 //*******************************************************************************************
 //                            SELECT A SATELLITE PLATFORM
@@ -242,24 +242,8 @@ var postfire_end = '2022-05-28';
 
 var platform = 'S2';               // <--- assign your choice to the platform variable
 
-//*******************************************************************************************
-//---->>> DO NOT EDIT THE SCRIPT PAST THIS POINT! (unless you know what you are doing) <<<---
-//------------------->>> NOW HIT 'RUN' AT THE TOP OF THE SCRIPT! <<<-------------------------
-//--> THE FINAL BURN SEVERITY PRODUCT WILL READY FOR DOWNLOAD ON THE RIGHT (UNDER TASKS) <---
-
-//*******************************************************************************************
-
 
 //---------------------------------- Translating User Inputs --------------------------------
-
-// Print Satellite platform and dates to console
-// if (platform == 'S2' | platform == 's2') {
-  // var ImCol = 'COPERNICUS/S2';
- //  var pl = 'Sentinel-2';
-// } else {
-  // var ImCol = 'LANDSAT/LC08/C01/T1_SR';
-  // var pl = 'Landsat 8';
-// }
 
 var ImCol = 'COPERNICUS/S2_SR';
 var pl = 'Sentinel-2';
@@ -268,7 +252,7 @@ print(ee.String('Data selected for analysis: ').cat(pl));
 print(ee.String('Fire incident occurred between ').cat(prefire_end).cat(' and ').cat(postfire_start));
 
 // Location
-var area = ee.FeatureCollection(wantedZoom);
+var area = ee.FeatureCollection(forNBR);
 
 // Set study area as map center.
 Map.centerObject(area);
@@ -394,19 +378,17 @@ Map.addLayer(area.draw({color: 'ffffff', strokeWidth: 5}), {},'Study Area');
 // Apply platform-specific visualization parameters for true color images
 if (platform == 'S2' | platform == 's2') {
   var vis = {bands: ['B4', 'B3', 'B2'], max: 2000, gamma: 1.5};
-  var vis2 = {bands: ['B4', 'B3', 'B2'], max: 2000, gamma: 0.22};
 } else {
   var vis = {bands: ['B4', 'B3', 'B2'], min: 0, max: 4000, gamma: 1.5};
 }
 
 // Add the true color images to the map.
 Map.addLayer(pre_mos, vis,'Pre-fire image');
-// Apply gamma correction for post fire if color off (snow interference)
-Map.addLayer(post_mos, vis2,'Post-fire image');
+Map.addLayer(post_mos, vis,'Post-fire image');
 
 // Add the true color images to the map.
 Map.addLayer(pre_cm_mos, vis,'Pre-fire True Color Image - Clouds masked');
-Map.addLayer(post_cm_mos, vis2,'Post-fire True Color Image - Clouds masked');
+Map.addLayer(post_cm_mos, vis,'Post-fire True Color Image - Clouds masked');
 
 //--------------------------- Burn Ratio Product - Greyscale -------------------------------
 
@@ -544,3 +526,10 @@ for (var i = 0; i < 8; i++) {
  
 // add legend to map (alternatively you can also print the legend to the console)
 Map.add(legend);
+
+// TO DO: 
+// terrain correction -> impacts results 
+// cut area down 
+// Mar 16th post fire, Mar 1st pre
+// if narrow fails -> pick close date a year before for pre
+// reachout to Robert York, CAL FIRE, NIFC 
